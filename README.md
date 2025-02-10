@@ -12,6 +12,7 @@ The program needs packages, which should be a part of Python/OS platforms:
     matplotlib, pywt, xclip, scipy, numpy
     
 2) Program usage/manual is given below in figure
+
 #-----------------------------------------------------------------
 
 To start program:
