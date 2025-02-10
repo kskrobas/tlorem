@@ -1,11 +1,17 @@
+#-----------------------------------------------------------------
+
+![tloremlogo](pictures/tloremlogo.png)
+
+#-----------------------------------------------------------------
 
 Before start:
 1) install scikit-ued package from:
 https://github.com/LaurentRDC/scikit-ued/tree/master
 
-Program also needs, which should be a part of Python/OS platforms:
+The program needs packages, which should be a part of Python/OS platforms: 
     matplotlib, pywt, xclip, scipy, numpy
-
+    
+2) Program usage/manual is given below in figure
 #-----------------------------------------------------------------
 
 To start program:
@@ -27,5 +33,4 @@ Graphical manuall
 
 ![graphM](pictures/graph-manual.png)
 
-
-
+#-----------------------------------------------------------------
