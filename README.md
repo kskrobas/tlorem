@@ -13,6 +13,8 @@ To start program:
     1) First option, just type:
 
     $ python3 tlorem.py
+    
+    or the second option:
 
     2) make tlorem.py executable:
         $chomod +x tlorem.py
