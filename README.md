@@ -30,7 +30,7 @@ To start program:
     or the second option:
 
     2) make tlorem.py executable:
-        $chomod +x tlorem.py
+        $chmod +x tlorem.py
  
     and run:
     $ ./tlorem.py
