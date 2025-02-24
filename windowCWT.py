@@ -16,6 +16,8 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk) 
 from matplotlib.backend_tools import ToolBase
 from matplotlib import gridspec
+from matplotlib import colormaps
+
 import numpy as np
 import pyperclip as pc
 import pandas as pd
@@ -113,14 +115,14 @@ class plotWindow(tk.Toplevel):
         #----------------------------------------------------------------------
         #------- FRAME TOP ----------------
         self.pltFrame=tk.LabelFrame(self,text="",height=500)
-        self.pltFrame.pack(fill='both',expand=True)
+        self.pltFrame.pack(fill='both',side=tk.TOP,expand=True)
         #self.pltFrame.
         
 
         self.__fig__ = Figure(figsize = (4, 3), dpi = 150)         
                         
         canvas = FigureCanvasTkAgg(self.__fig__, master = self.pltFrame)         
-        toolbar=NavigationToolbar2Tk(canvas)
+        toolbar=NavigationToolbar2Tk(canvas,self.pltFrame)
         toolbar.update()
         canvas._tkcanvas.pack(fill=tk.BOTH,expand=1)
         
@@ -128,7 +130,7 @@ class plotWindow(tk.Toplevel):
         #----------------------------------------------------------------------
         #------- FRAME BOTTOM ----------------
         stFrame=tk.LabelFrame(self,text="CWT settings",bg=bgcolor,height=150)
-        stFrame.pack(fill='both',side=tk.BOTTOM,expand=True)
+        stFrame.pack(fill='x',side=tk.BOTTOM,expand=False)
         stFrame.pack_propagate(False)
         stFrame.grid_propagate(False)
         
@@ -201,35 +203,64 @@ class plotWindow(tk.Toplevel):
         brun=tk.Button(stFrame,text='replot',bg=bgcolor,command=self.plot)
         brun.grid(row=0,column=6,columnspan=1,padx=10,pady=10)
         
-        #------------ colormaps
-        #.......... families ..................
+        #------------ colormaps ..................        
         self.colormaps=tk.StringVar()
         self.colormaps.set("Oranges");
-         
+        
+        
+        ''' 
         cmaps=['viridis', 'plasma', 'inferno', 'magma', 'cividis',
-                'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
-                    'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
-                    'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
-                    'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
-                    'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
-                    'hot', 'afmhot', 'gist_heat', 'copper']
+                
+               'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+               'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+               'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn',
+                    
+               'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
+               'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
+               'hot', 'afmhot', 'gist_heat', 'copper',
+                    
+               'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+               'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic',
+               'berlin', 'managua', 'vanimo']
+        '''
      
         inarg={'font': self.__defFont__,
                 'width': 10,
                 'justify': 'center',
-                'values': cmaps
+                'values': list(colormaps)
                 }
         lbarg={'font': self.__defFont__ , 
                 'background' : bgcolor,
                 'justify': 'left'
                 }
-        leCmColors=le.LabelEdit(stFrame,label='colormaps ',
+        leCmColors=le.LabelEdit(stFrame,label='I. colormaps',
                            input_class=ttk.Combobox, input_args=inarg,
                            input_var=self.colormaps,
                            label_args=lbarg)
         leCmColors.grid(row=1,column=0,columnspan=2,padx=10,pady=10)
-        #----------------------------------------------------------------------
+        #------------ intensity reduction ..................                
+        self.reductIntensity=tk.StringVar()
+        self.reductIntensity.set("sqrt")
+                                 
+        inarg={'font': self.__defFont__,
+                'width': 10,
+                'justify': 'center',
+                'values': ['sqrt','log10','None']
+                }
+        lbarg={'font': self.__defFont__ , 
+                'background' : bgcolor,
+                'justify': 'left'
+                }
         
+        leReductInt=le.LabelEdit(stFrame,label='I. reduction ',
+                           input_class=ttk.Combobox, input_args=inarg,
+                           input_var=self.reductIntensity,
+                           label_args=lbarg)
+        leReductInt.grid(row=1,column=2,columnspan=2,padx=10,pady=10)
+        
+        
+                
+        #----------- other ---------------------------------        
         self.initMenu()        
         self.geometry("800x600")
         self.title('CWT')
@@ -382,6 +413,10 @@ class plotWindow(tk.Toplevel):
         widths=2.0**np.arange(minWl,maxWl,stWl)
         X,Y=self.data2D[:,0],self.data2D[:,1]
         
+        ymax=Y.max()
+        Y[0]=Y[-1]=ymax*2
+        
+        
         dX=(X.max()-X.min())/X.shape[0]
         #print('dX ',dX,'  ',X[1]-X[0])
         
@@ -390,35 +425,37 @@ class plotWindow(tk.Toplevel):
         #print('fr=',freqs)
         fmin,fmax=freqs[-1],freqs[0]
 
-        thr=float(wThresh)        
-        if thr<0:
-            thr=0
-            
-        izero=np.where(cwtmatr<thr)
-        cwtmatr[izero]=0
-
-        
-        #bnd=5
-        
-        pcm = a0.pcolormesh(X, freqs, (cwtmatr)**0.5,cmap=self.colormaps.get())
-        #cbx=fig.add_subplot(a0)        
+        if self.reductIntensity.get()=="None":
+            thr=float(wThresh)                    
+            izero=np.where(cwtmatr<=thr)
+            cwtmatr[izero]=thr
+            pcm = a0.pcolormesh(X, freqs, cwtmatr,cmap=self.colormaps.get())
+        else:
+            thr=float(wThresh)        
+            if thr<0:
+                thr=0                
+            izero=np.where(cwtmatr<=thr)
+                    
+            if self.reductIntensity.get()=="sqrt":                                                
+                cwtmatr[izero]=0    
+                pcm = a0.pcolormesh(X, freqs, (cwtmatr)**0.5,cmap=self.colormaps.get())
+            else:                
+                cwtmatr[izero]=1
+                pcm = a0.pcolormesh(X, freqs, np.log10(cwtmatr),cmap=self.colormaps.get())
+                                            
         fig.colorbar(pcm,ax=a2,shrink=0.6)        
-        #divider = make_axes_locatable(a0)
-        #cax = divider.append_axes('right', size="7%", pad=0.2,)
-        #fig.colorbar(pcm,cax=cax)
         
-        a0.set_yscale("log",base=2)
-        #a0.set_xlabel('X')
-        a0.set_ylabel('frequency [a.u.]')
-        #a0.set_xlim([0,3500])
+        a0.set_yscale("log",base=2)        
+        a0.set_ylabel('frequency [a.u.]')        
         a0.get_xaxis().set_ticks([])
-        
-        a1.plot(X,fmax*0.5*Y/Y.max()+fmin,'-k',linewidth=0.75)      
+                
+        Y[0]=Y[1]
+        Y[-1]=Y[-2]
+        a1.plot(X,fmax*0.5*Y/ymax+fmin,'-k',linewidth=0.75)      
         a1.spines['top'].set_visible(False)
         a1.spines['right'].set_visible(False)
         a1.set_xlim([X[0],X[-1]])
-          
-        
+                  
         a2.axis('off')
                             
         fig.canvas.draw()

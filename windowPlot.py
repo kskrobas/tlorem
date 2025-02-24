@@ -7,19 +7,20 @@ from tkinter import messagebox
 from tkinter import filedialog as fd
 #from ttkthemes import themed_tk as tk
 
-import labelEdit as le
-import windowPlotFFT as wfft
-import numpy as np
-import initsetRW as ini
-
-
 from matplotlib.figure import Figure 
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk) 
 from matplotlib.backend_tools import ToolBase
+
 import numpy as np
 import pyperclip as pc
-
 import pandas as pd
+
+import initsetRW as ini
+import labelEdit as le
+import windowPlotFFT as wfft
+import windowCWT as wcwt
+
+
 
 
 
@@ -104,7 +105,7 @@ class plotWindow(tk.Toplevel):
         self.initMenu()        
         self.geometry("800x600")
         
-        self.iniDir='/home/fizyk/python/tloremover-git/inputData/'
+        #self.iniDir='/home/fizyk/python/tloremover-git/inputData/'
         self.parent=parent
         self.imageDir=tk.StringVar()    
         self.imageDir.set(ini.getValue('default','inpath').rsplit('/',1)[0])  
@@ -115,7 +116,6 @@ class plotWindow(tk.Toplevel):
     def initMenu(self):               
         menubar = Menu(self)
         
-
         fileMenu = Menu(menubar)#font=("",14)
         #fileMenu.add_command(label="Open")
         fileMenu.add_command(label="Save",command=self.dataSave)
@@ -125,6 +125,7 @@ class plotWindow(tk.Toplevel):
         optMenu.add_command(label="data  to  clipboard",command=self.dataToClipboard)
         optMenu.add_command(label="data from clipboard",command=self.dataFromClipboard)
         optMenu.add_command(label="FFT analysis",command=self.showFFT)
+        optMenu.add_command(label="CWT analysis",command=self.showCWT)
         
         helpMenu=Menu(menubar)
         helpMenu.add_command(label="Authors/Credits")
@@ -137,8 +138,6 @@ class plotWindow(tk.Toplevel):
         plotMenu.add_checkbutton(label="Legend",onvalue=1,offvalue=0,command=self.pltLegend,variable=self.menuLegend)
         plotMenu.add_checkbutton(label="Grid",onvalue=1,offvalue=0,command=self.pltGrid)
         
-        ##self.menuCheckButton['legend']=mlegend
-                
         menubar.add_cascade(label="File", menu=fileMenu)      
         menubar.add_cascade(label="Options",menu=optMenu)
         menubar.add_cascade(label="Plot",menu=plotMenu)
@@ -179,13 +178,18 @@ class plotWindow(tk.Toplevel):
     
     def showFFT(self):
         child=wfft.plotWindow(self)
-        child.data2D=self.data2D
-        
+        child.data2D=self.data2D        
         child.plot()
         
     
+        
+    def showCWT(self):
+        child=wcwt.plotWindow(self)
+        child.data2D=self.data2D        
+        child.plot()        
+        
     
-    
+        
     def graphOnClick(self,event):
         print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
          ('double' if event.dblclick else 'single', event.button,
